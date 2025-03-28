@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { genSalt, hash } from 'bcryptjs'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { User } from 'src/users/entities/user.entity'
+import { AuthPayload } from './auth.types'
 import { LoginInput } from './dto/login-auth.input'
 import { RegisterInput } from './dto/register-auth.input'
 
@@ -22,8 +23,8 @@ export class AuthService {
 
       const user: User = await this.prisma.user.create({
         data: {
-          fullname: fullname,
-          email: email,
+          fullname,
+          email,
           password: hashedPassword,
         },
         omit: {
@@ -31,7 +32,7 @@ export class AuthService {
         },
       })
 
-      const payload = {
+      const payload: AuthPayload = {
         sub: user.id,
         email: user.email,
       }
