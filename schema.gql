@@ -24,6 +24,7 @@ type Query {
 type Mutation {
   register(registerInput: RegisterInput!): User!
   login(loginInput: LoginInput!): User!
+  refreshToken: String!
 }
 
 input RegisterInput {

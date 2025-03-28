@@ -15,7 +15,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(registerInput: RegisterInput): Promise<{ user: User; token: string }> {
+  async register(registerInput: RegisterInput): Promise<{ user: User; accessToken: string, refreshToken: string }> {
     const { fullname, email, password } = registerInput
 
     try {
@@ -37,9 +37,10 @@ export class AuthService {
         email: user.email,
       }
 
-      const token = await this.signToken(payload)
+      const accessToken = await this.signAccessToken(payload)
+      const refreshToken = await this.signRefreshToken(payload)
 
-      return { user, token }
+      return { user, accessToken, refreshToken }
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002')
         throw new ConflictException('User with this email already exists')
@@ -48,14 +49,12 @@ export class AuthService {
     }
   }
 
-  async login(loginAuthInput: LoginInput): Promise<{ user: User; token: string }> {
+  async login(loginAuthInput: LoginInput): Promise<{ user: User; accessToken: string, refreshToken: string }> {
     const { email, password } = loginAuthInput
     try {
-      const user = await this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUniqueOrThrow({
         where: { email },
       })
-
-      if (!user) throw new UnauthorizedException('Invalid credentials')
 
       await this.validateUser(password, user.password)
 
@@ -64,9 +63,10 @@ export class AuthService {
         email: user.email,
       }
 
-      const token = await this.signToken(payload)
+      const accessToken = await this.signAccessToken(payload)
+      const refreshToken = await this.signRefreshToken(payload)
 
-      return { user, token }
+      return { user, accessToken, refreshToken }
     } catch (error) {
       throw new BadRequestException(error)
     }
@@ -76,11 +76,53 @@ export class AuthService {
     return 'Logged out'
   }
 
-  private async signToken(payload: AuthPayload) {
+  async verifyRefreshToken(refreshToken: string) {
+    try {
+      const decoded = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      })
+      return decoded
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token')
+    }
+  }
+
+  async signAccessToken(payload: AuthPayload) {
     return await this.jwtService.signAsync(payload, {
       expiresIn: process.env.JWT_EXPIRES_IN,
       secret: process.env.JWT_SECRET,
     })
+  }
+
+  private async signRefreshToken(payload: AuthPayload) {
+    return await this.jwtService.signAsync(payload, {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+      secret: process.env.JWT_REFRESH_SECRET,
+    })
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<string> {
+    try {
+      const decoded = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      })
+
+      const user = await this.prisma.user.findUniqueOrThrow({
+        where: { id: decoded.sub },
+      })
+
+      const payload: AuthPayload = {
+        sub: user.id,
+        email: user.email,
+      }
+
+      const newAccessToken = await this.signAccessToken(payload)
+      return newAccessToken
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token')
+    }
   }
 
   private async hashPassword(password: string, saltRounds = 12): Promise<string> {
