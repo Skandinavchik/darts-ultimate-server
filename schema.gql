@@ -23,7 +23,7 @@ type Query {
 
 type Mutation {
   register(registerInput: RegisterInput!): User!
-  login(loginInput: LoginInput!): String!
+  login(loginInput: LoginInput!): User!
 }
 
 input RegisterInput {

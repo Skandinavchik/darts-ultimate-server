@@ -25,8 +25,19 @@ export class AuthResolver {
     return user
   }
 
-  @Mutation(() => String)
-  async login(@Args('loginInput') loginInput: LoginInput) {
-    return await this.authService.login(loginInput)
+  @Mutation(() => User)
+  async login(
+    @Args('loginInput') loginInput: LoginInput,
+    @Context() context: { res: Response },
+  ) {
+    const { user, token } = await this.authService.login(loginInput)
+
+    context.res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 15 * 60 * 1000,
+    })
+
+    return user
   }
 }
