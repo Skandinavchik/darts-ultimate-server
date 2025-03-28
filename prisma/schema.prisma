@@ -7,12 +7,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Water {
-  id           String   @id @default(cuid())
-  serialNumber String   @unique
-  title        String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model User {
+  id            String   @id @default(cuid())
+  fullname      String
+  username      String?
+  email         String   @unique
+  password      String
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  @@map("waters")
+  @@map("users")
 }

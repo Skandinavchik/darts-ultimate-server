@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common'
+import { AuthModule } from './auth/auth.module'
 import { EnvConfigModule } from './configs/env-config.module'
 import { GraphqlConfigModule } from './configs/graphql.config.module'
-import { WatersModule } from './waters/waters.module'
-import { PrismaModule } from './prisma/prisma.module';
+import { UsersModule } from './users/users.module'
 
 @Module({
   imports: [
     EnvConfigModule,
     GraphqlConfigModule,
-    WatersModule,
-    PrismaModule,
+    UsersModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
