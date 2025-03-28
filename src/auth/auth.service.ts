@@ -11,7 +11,7 @@ import { RegisterInput } from './dto/register-auth.input'
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -21,7 +21,7 @@ export class AuthService {
     try {
       const hashedPassword = await this.hashPassword(password)
 
-      const user: User = await this.prisma.user.create({
+      const user: User = await this.prismaService.user.create({
         data: {
           fullname,
           email,
@@ -52,7 +52,7 @@ export class AuthService {
   async login(loginAuthInput: LoginInput): Promise<{ user: User; accessToken: string, refreshToken: string }> {
     const { email, password } = loginAuthInput
     try {
-      const user = await this.prisma.user.findUniqueOrThrow({
+      const user = await this.prismaService.user.findUniqueOrThrow({
         where: { email },
       })
 
@@ -108,7 +108,7 @@ export class AuthService {
         secret: process.env.JWT_REFRESH_SECRET,
       })
 
-      const user = await this.prisma.user.findUniqueOrThrow({
+      const user = await this.prismaService.user.findUniqueOrThrow({
         where: { id: decoded.sub },
       })
 

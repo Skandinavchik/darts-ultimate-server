@@ -43,7 +43,7 @@
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.1",
+    "@nestjs/testing": "^11.0.12",
     "@stylistic/eslint-plugin": "^4.0.1",
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
@@ -83,6 +83,23 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
+    "coveragePathIgnorePatterns" : [
+      "src/main.ts",
+      "src/app.module.ts",
+      "src/auth/auth.module.ts",
+      "src/auth/dto/register-auth.input.ts",
+      "src/auth/dto/login-auth.input.ts",
+      "src/prisma/prisma.module",
+      "src/prisma/prisma.service.ts",
+      "src/configs/env-config.module.ts",
+      "src/configs/graphql.config.module.ts",
+      "src/users/users.module.ts",
+      "src/users/entities/user.entity.ts",
+      "src/users/dto/update-user.input.ts"
+    ]
   }
 }
